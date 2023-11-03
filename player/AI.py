@@ -251,6 +251,7 @@ class AI:
 
 
     def calculateb(self,gametiles):
+        # Sets the values of each piece type dduring the "early game" stage
         early_game_piece_values = {
             'p': 82,
             'n': 337,
@@ -260,6 +261,7 @@ class AI:
             'k': 20000
         }
 
+        # Sets the values of each piece type dduring the "end game" stage
         end_game_piece_values = {
             'p': 94,
             'n': 281,
@@ -269,6 +271,7 @@ class AI:
             'k': 20000
         }
 
+        # A piece square table to weight certain positions higher than others for each piece type. This one targets the "early game" stage
         early_game_piece_square_table = {
             'p': [
                 [      20000,   20000,   20000,   20000,   20000,   20000,  20000,   20000,],
@@ -331,6 +334,8 @@ class AI:
                 [    -15,  36,  12, -54,   8, -28,  24,  14,],
             ]
         }
+
+        # A piece square table to weight certain positions higher than others for each piece type. This one targets the "end game" stage
         end_game_piece_square_table = {
             'p': [
                 [      20000,   20000,   20000,   20000,   20000,   20000,   20000,   20000,],
@@ -394,6 +399,7 @@ class AI:
             ]
         }
 
+        # How much to incremenet the game "phase" if a certain piece type is removed
         piece_gamephase_inc = {
             'p': 0,
             'n': 1,
@@ -403,28 +409,28 @@ class AI:
             'k': 0
         }
 
+        # We calculate the values for both the early game piece square table as well as the late game piece square table
         early_game_value = 0
         end_game_value = 0
         gamephase = 0
-
         for y in range(8):
             for x in range(8):
-                piece = gametiles[y][x].pieceonTile.tostring()
-                if piece == '-':
+                piece = gametiles[y][x].pieceonTile.tostring() # Get piece
+                if piece == '-': # Skip blanks
                     continue
-                if piece.islower():
+                if piece.islower(): # If it's our piece, increment both early and end game values by their respective piece_value and square table values
                     early_game_value = early_game_value + early_game_piece_values[piece] + early_game_piece_square_table[piece][y][x]
                     end_game_value   = end_game_value   + end_game_piece_values[piece]   + end_game_piece_square_table[piece][y][x]
-                else:
+                else: # If it's the opponent's piece, decrement the values instead
                     early_game_value = early_game_value - early_game_piece_values[piece.lower()] - early_game_piece_square_table[piece.lower()][7-y][7-x]
                     end_game_value   = end_game_value   - end_game_piece_values[piece.lower()]   - end_game_piece_square_table[piece.lower()][7-y][7-x]
                 gamephase = gamephase + piece_gamephase_inc[piece.lower()]
 
+        # We interpolate between the early_game_value and end_game_value based on the game phase, with higher values prioritizing the former.
         early_game_phase = gamephase
         if early_game_phase > 24:
             early_game_phase = 24
         end_game_phase = 24 - early_game_phase
-
         return (early_game_value * early_game_phase + end_game_value * end_game_phase) / 24.0
 
 
